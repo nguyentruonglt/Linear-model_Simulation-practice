@@ -1,0 +1,63 @@
+---
+title: "Simulation_p_value_linear regression"
+author: "Nguyen Truong"
+date: "2025-04-26"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+#Introduction
+This exercise and solution in the course *Linear model* of the *Master in Statistics and Data Science* at University of Hasselt. I re-write it as practicing. 
+**Set up a simulation study to demonstrate that the following hypothesis testing procedure does not control the type I error rate at the nominal $\alpha$ level**. 
+*Explaining the question* 
+- *The following hypothesis testing procedure* means: if $\hat{beta1}$ < 0, set the alternative hypothesis to H1:$\hat{beta1}$ < 0, otherwise set the alternative hypothesis to H1:$\hat{beta1}$ > 0. 
+- *The following hypothesis testing procedure does not control the type I error rate at the nominal $\alpha$ level* means: when we repeat the simulation many times (1.000), the rate/proportion of the type 1 error <0.05 is more often than 0.05    
+
+*Solution* 
+- As the requirement in the question, we simulate a data under the null hypothesis (H0:$\hat{beta1}$ = 0) and then compute the p_value for 2 cases of one-side alternative hypothesis above. This p_value is the type I error because type I error is probability to reject H0 when H0 is true.  
+- We repeat the simulation many times (1.000) and then compute the proportion/rate of p_value < 0.05. If this rate > 0.05, we say the the hypothesis testing procedure dose not control the type I error rate at 0.05 
+
+```{r}
+rm(list = ls())
+
+set.seed(12345)
+N <- 10000   # number of repeat experiment
+x <- c(165, 170, 175, 180, 185) #create x values (5 subjects) from the father's heights in Galton's experiment
+#X <- cbind(1,x) #design the matrix of x
+pvalue <- c()
+
+for (i in 1:N) {
+  y <- 90 + 0*x + rnorm(n = 5,mean = 0, sd = 5) #random sample of 5 outcomes
+  dat <- data.frame(x,y)
+  m <- lm(y ~ x, data = dat)
+  beta1Hat <- coef(m)[2]
+  if(beta1Hat<0) {
+    p<- summary(m)$coef[2,4]/2   # if H1: beta1Hat<0, so t<0, the p_value needs to be divided by 2
+  }
+  if(beta1Hat>0) {
+    p <- summary(m)$coef[2,4]/2  # if H1: beta1Hat>0, so t>0, the p_value needs to be divided by 2
+  }
+  pvalue <- c(pvalue,p) 
+}
+
+#compute the rate of the empirical type I error for alpha = 0.05
+mean(pvalue < 0.05)
+
+#histogram
+hist(pvalue)
+hist(pvalue, cex.lab = 1.5, cex.axis = 1.5, xlim = c(0,1))
+
+
+# empirical type I error rate for alpha=0.
+mean(pvalues<0.05)
+
+
+# histogram 
+hist(pvalues, cex.lab=1.5, cex.axis=1.5,
+     xlim=c(0,1))
+
+```
+note: This simulation study shows that the type I error rate is approximated by 0.0982, which is larger than the nominal value of alpha =0.05
+ 
