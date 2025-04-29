@@ -1,0 +1,66 @@
+---
+title: "2.1.interpretation beat_simulation"
+author: "Nguyen Truong"
+date: "2025-04-23"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+rm(list = ls())
+```
+#Objective
+- Using simulation dataset to understand the function $m$ 
+- Using the simulation dataset to understand the conditional distribution of outcomes, given a value of $x_i$ 
+
+#Solution
+- Model: $Y_i = \beta_0 + \beta_1*x_i + \epsilon_i$, with $\epsilon_i$ is idential and independent distribution $F_\epsilon(.;\gamma)$ and $E(\epsilon_i) = E(\epsilon_i|x_i) = 0$. 
+- $F_\epsilon$: normal distribution with mean zero and variance $\delta^{2}$. 
+- Father_height: $x_i$ (165, 170, 175, 180, 185)
+- We set parameter to specific values: $\beta_0 = 90, \beta_1 = 0.5, \delta = 5$ 
+
+##Function "m"
+```{r}
+set.seed(12345)
+# experiment_1
+x <- c(165, 170, 175, 180, 185)   # five value of father's height
+eps <- c(rnorm(n = 5, mean = 0, sd = 5))   # random sample of 5 error terms
+y <- 90 + 0.5 * x + eps   # random sample of outcomes
+data <- data.frame(experiment = 1, x = x, y = y)
+plot(x, y, cex.axis = 1.5, cex.lab = 1.5, ylim = c(160, 200))  #plot x, y in the experiment_1 
+abline(c(90, 0.5), col = "red")   # add regression line 
+
+#simulation experiment_1 1000 times
+set.seed(12345)
+x <- c(165, 170, 175, 180, 185)
+y <- 90 + 0.5*x + rnorm(5, sd= 5)
+plot(x,y, cex.axis = 1.5, cex.lab=1.5, ylim = c(160,200))
+abline(c(90,0.5), col = "red")
+data <- data.frame(experiment = 1, x, y)
+N <- 1000
+for (experiment in 2:N) {
+  y <- 90 + 0.5 * x + rnorm(5, sd = 5)
+  points(x, y, col = experiment)   #need to run with the code plot() together because coordinates (x,y) are passed in a plottiing structure
+  data <- rbind(data,cbind(experiment, x, y))
+}
+```
+note: when we simulated samples (experiments) 1000 times, we could see the regression line (red line) cross the mean of outcomes, given each value of x. So, the function "m" is linear function. Now we investigate the shape of distribution of outcomes, given each value of x. 
+
+##Distribution of outcomes, given each value of x
+```{r}
+par(mfrow = c(2,3))
+for (i in 1:5) {
+  y <- data$y[data$x == x[i]]
+  hist(y, main = paste("x=",x[i]), xlab = "y")
+  abline(v = 90 + 0.5*x[i], col = 2, lwd = 2)   #add red line as average outcomes according to the regression model
+  abline(v = mean(y), col = 4, lty = 2, lwd = 2)  # add blue line as average outcomes according to the mean value of y from the simulation
+}
+```
+note1: with N=1000 repeated experiment, we learned that the average outcomes according to the regression model (red line) and the average outcomes or repeated experiments (blue line) are almost overlapped. 
+Note2: According to the histogram plots, we learned that the shape of distribution of outcomes of 1000 repeated samples, given each value of $x_i$ are normal distribution
+
+
