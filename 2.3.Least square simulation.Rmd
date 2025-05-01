@@ -1,0 +1,81 @@
+---
+title: "Least square estimation_simulation"
+author: "Nguyen Truong"
+date: "2025-05-01"
+output: html_document
+---
+#1.Basic knowledge
+Two properties of the least square estimation 
+- $$E\{\beta \} = \beta$$ 
+- $$Var\{\beta\} = (X^{t}X)^{-1}\sigma^2$$  
+
+To understand the properties, we conduct simulation study to compute least quare estimator of $\beta_0$ and $\beta_1$
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+rm(list = ls())
+library(ggplot2)
+library(tidyverse)
+```
+
+#2. Exercise 1
+We repeat the experiment N=1000 times and then we compute the mean and the variance of the N=10000 parameter estimates. Regressor x is fathers' height from Galton dataset, x = c(165,170,175,180,185), replicating 10 times (a total of n=50 observations). We set the (true) parameter values to  $\beta_0 = 90$, $\beta_1 = 0.5$, $\sigma = 5$. 
+```{r}
+set.seed(12345)
+N <- 10000
+x <- c(165,170,175,180,185)
+x <- rep(x, 10)
+betaHat <- data.frame(beta0Hat = NA, beta1Hat =NA)
+for (i in 1:N) {
+  y <- 90 + 0.5*x + rnorm(n=50, sd=5)
+  dat <- data.frame(x = x, y = y)
+  m <- lm(y ~ x, data = dat)
+  betaHat[i,] <- coef(m)
+}
+
+#To calculate the mean of beta_0 and beta_1 of 10000 repeated experiment
+colMeans(betaHat)  #calculate mean of each column in data frames betaHat
+
+#To compute the var of beta_0 and beta_1 
+X <- matrix(nrow = 50, ncol = 2)  
+X[,1] = 1  #in the first columnm, value of 1 in each row  
+X[, 2] = x #in the second columnm, value of x in each row
+Emperical_var <- var(betaHat)   #calculate var(beta) according to the regression model
+var <- solve(t(X) %*% X) * 5^2  #calculate var(beta) according the equation above
+Emperical_var
+var
+```
+note: when repeating experiment 10000 times, the mean of beta_0 and beta_1 computing from the regression model are close to the true beta (properties 1) and the variances of beta_0 and beta_1 are close to the variances computing from equation 2
+
+#3. Exercise 2
+Considering the setting with only two different values of the regressor (x=165 and x=185) and replicating 25 times (a total of n=50 observations), just like in the simulation study above. Check whether the LSEs of β0 and β1 are unbiased and compute the empirical variance of the estimators from the simulation study. How do these variances compare to the variances from the previous simulation study? Can you give an explanation?
+
+```{r}
+set.seed(12345)
+x <- c(165, 185)
+x<- rep(x, 25)  #total of n=50 observations
+N <- 10000
+betaHat2 <- data.frame(beta0Hat = NA, beta1Hat = NA)
+for (i in 1:N) {
+  y <- 90 + 0.5*x + rnorm(n=50, sd=5)
+  dat_2 <- data.frame(x =x, y= y)
+  m2 <- lm(y~x, data = dat_2)
+  betaHat2[i,] <- coef(m2) 
+}
+#computing LSE of β0 and β1
+colMeans(betaHat2)
+
+#computing the empirical variance of the estimators from the simulation study. How do these variances compare to the variances from the previous simulation study? Can you give an explanation?
+Empericak_var2 <- var(betaHat2)
+Empericak_var2
+Emperical_var
+```
+Note: to explain the smaller variances of beta_0 and beta_1 in the exercise 2 compared to exercise 1
+$$Var\{\beta\} = \frac{\sigma^2}{\sum_{i=1}^{n} (x_i-\overline{x})^2}$$ 
+in exercise 1: x = c(165,170,175,180,185), the $\overline{x} = 175$ and $\sum_{i=1}^{n} (x_i-\overline{x})^2 = 2500$ 
+in exercise 2: x = c(165, 185), the $\overline{x} = 175$ and $\sum_{i=1}^{n} (x_i-\overline{x})^2 = 5000$
+so, the $Var\{\beta\}$ in exercise 2 is smaller than $Var\{\beta\}$ in exercise 1
+In general, a given $n$, a given $\sigma^2$, and a given interval for the regressor i.e. $x \in [x_{min}, x_{max}]$, the variance of $\hat\beta_0$ and $\hat\beta_1$ are smallest when half of the regressors are set to $x_{min}$ and other half is set to $x_{max}]$ 
